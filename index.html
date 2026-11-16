@@ -222,11 +222,13 @@ const BLOB='https://jsonblob.com/api/jsonBlob';
 function snapRows(snap){try{const rows=[];if(snap&&typeof snap.forEach==='function')snap.forEach(d=>rows.push(d&&d.data?d.data():d));else if(snap&&snap.docs)snap.docs.forEach(d=>rows.push(d&&d.data?d.data():d));else if(Array.isArray(snap))snap.forEach(d=>rows.push(d&&d.data?d.data():d));else return null;return rows.filter(x=>x&&typeof x.score==='number')}catch(e){return null}}
 async function fetchGlobal(){if(!DB)return null;try{const q=DB.collection('scores').orderBy('score','desc').limit(50);const snap=await q.get();return snapRows(snap)}catch(e){return null}}
 async function submitGlobal(name,sc){if(!DB||!uid)return false;try{const ref=DB.doc('scores/'+uid);let cur=null;try{const ds=await ref.get();cur=ds&&(ds.data?ds.data():ds)}catch(e){}if(cur&&typeof cur.score==='number'&&cur.score>=sc)return true;await ref.set({name:(name||'Anon').slice(0,14),score:sc,wave:wave,diff:G.diff,at:Date.now()});return true}catch(e){return false}}
-async function netLoad(){if(!boardId)return null;try{const res=await fetch(BLOB+'/'+boardId,{headers:{'Accept':'application/json'}});if(!res.ok)return null;const j=await res.json();const a=(j&&j.scores)||[];return a.filter(x=>x&&typeof x.score==='number')}catch(e){return null}}
-async function netSubmit(entry){if(!boardId)return false;try{let a=await netLoad();if(!a)a=[];a.push(entry);a.sort((x,y)=>y.score-x.score);a=a.slice(0,100);await fetch(BLOB+'/'+boardId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({scores:a})});return true}catch(e){return false}}
+const SB='https://hamrckmnvjesifmvwwzv.supabase.co/rest/v1/scores',SBK='sb_publishable_jDPxXi0zaEXshlsAaNLLcg_lau5rP-6',SBH={'apikey':SBK,'Accept':'application/json'};
+const DCODE={e:'easy',n:'normal',h:'hard'};
+async function netLoad(){try{const res=await fetch(SB+'?select=name,score,created_at&order=score.desc&limit=50',{headers:SBH});if(!res.ok)return null;const j=await res.json();return (j||[]).filter(x=>x&&typeof x.score==='number').map(x=>{const m=String(x.name).match(/^(.*)~([enh])$/);return {name:m?m[1]:x.name,score:x.score,diff:m?DCODE[m[2]]:'normal'}})}catch(e){return null}}
+async function netSubmit(entry){try{const nm=String(entry.name||'Anon').slice(0,14)+'~'+String(entry.diff||'normal')[0];const res=await fetch(SB,{method:'POST',headers:Object.assign({'Content-Type':'application/json','Prefer':'return=minimal'},SBH),body:JSON.stringify({name:nm,score:Math.max(0,Math.floor(entry.score))})});return res.ok}catch(e){return false}}
 async function createBoard(){try{const res=await fetch(BLOB,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({scores:[]})});let id=res.headers.get('X-jsonblob')||'';if(!id){const loc=res.headers.get('Location')||'';id=loc.split('/').pop()||''}return id||''}catch(e){return ''}}
 function boardLink(){return location.origin+location.pathname+'#b='+boardId}
-function updateBoardAdminUI(){const el=$('badmin');if(!el)return;if(backend!=='net'){el.innerHTML='';return}
+function updateBoardAdminUI(){const el=$('badmin');if(!el)return;{el.innerHTML='';return}
   if(boardId){el.innerHTML='<div class="ok">✅ Shared leaderboard is ON — share this link so everyone’s scores land on one board:</div><div class="row"><input id="shareLink" readonly><button id="copyShare">Copy</button></div>';$('shareLink').value=boardLink();$('copyShare').onclick=()=>{const i=$('shareLink');i.select();try{navigator.clipboard.writeText(i.value)}catch(e){}$('copyShare').textContent='Copied!'}}
   else{el.innerHTML='<button id="makeBoard" class="mk">Set up shared leaderboard</button><div class="hint2">One tap creates a free online board (no account). You’ll get a link — everyone who opens it shares one scoreboard, no sign-in.</div>';$('makeBoard').onclick=async()=>{const bb=$('makeBoard');bb.textContent='Creating…';const id=await createBoard();if(id){boardId=id;save('tater_board',id);try{location.hash='b='+id}catch(e){}netReady=true;updateBoardAdminUI();const r=await netLoad();if(r){globalHS=r;renderHS()}}else{bb.textContent='Couldn’t reach the board service — tap to retry'}}}}
 async function initDB(){
@@ -237,8 +239,8 @@ async function initDB(){
       return}}}catch(e){}
   backend='net';
   try{const m=(location.hash||'').match(/b=([A-Za-z0-9_-]+)/);boardId=(m&&m[1])||(function(){try{return localStorage.getItem('tater_board')||''}catch(e){return ''}})()}catch(e){boardId=''}
-  if(boardId){netReady=true;const r=await netLoad();if(r){globalHS=r;if(!menuEl.hidden)renderHS()}}
-  updateBoardAdminUI();
+  netReady=true;{const r=await netLoad();if(r){globalHS=r;if(!menuEl.hidden)renderHS()}}
+  const ba=$('badmin');if(ba)ba.innerHTML='';
 }
 
 
