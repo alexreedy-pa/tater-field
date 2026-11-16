@@ -3,6 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tater Field">
+<meta name="theme-color" content="#0d0a14">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
 <title>Tater Field</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -720,6 +728,13 @@ function overlay(t,s){X.fillStyle='rgba(13,10,20,.55)';X.fillRect(0,0,VW,VH);X.t
 
 reset();showMenu('title');initDB();
 requestAnimationFrame(frame);
+/* full screen when sideways (Android/iPad; iPhone Safari needs Add to Home Screen) */
+(function(){const de=document.documentElement,req=de.requestFullscreen||de.webkitRequestFullscreen;if(!req)return;
+  const isLand=()=>matchMedia('(orientation: landscape)').matches,isFS=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const go=()=>{if(TOUCH&&isLand()&&!isFS()){try{const p=req.call(de,{navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{})}catch(e){}}};
+  addEventListener('pointerdown',go,true);addEventListener('orientationchange',()=>setTimeout(go,300));
+  try{screen.orientation&&screen.orientation.addEventListener('change',go)}catch(e){}})();
+if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
 </script>
 </body>
 </html>
