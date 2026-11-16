@@ -60,6 +60,9 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rend
 .touch #thud{display:flex;position:relative;inset:auto;flex:none;width:min(100vw,calc((100dvh - var(--cb) - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 1.6));height:var(--cb);align-items:center;justify-content:space-between;padding:0 5%;pointer-events:none}
 .touch #thud .stick{position:relative;left:auto;bottom:auto;height:88%;width:auto;max-width:none}
 .touch #thud .fire{position:relative;right:auto;bottom:auto;height:72%;width:auto;max-width:none;font-size:clamp(16px,4vmin,26px)}
+
+/* keep thumbs on the controls from scrolling/swiping the page */
+.touch #wrap,.touch #thud,.touch #thud *{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 </style>
 </head>
 <body>
@@ -165,6 +168,9 @@ function togglePause(){if(G.mode==='play')G.mode='pause';else if(G.mode==='pause
 let stickVec={x:0,y:0},stickId=null;
 const stick=document.getElementById('stick'),nub=document.getElementById('nub'),fbtn=document.getElementById('fbtn');
 if(TOUCH){
+  const thudEl=document.getElementById('thud');
+  ['touchstart','touchmove','touchend','gesturestart'].forEach(t=>thudEl.addEventListener(t,e=>{if(e.cancelable)e.preventDefault()},{passive:false}));
+  document.addEventListener('touchmove',e=>{if(G.mode==='play'&&e.cancelable&&!(e.target&&e.target.closest&&e.target.closest('input,.menu')))e.preventDefault()},{passive:false});
   const sr=()=>stick.getBoundingClientRect();
   const mv=e=>{const r=sr(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,R=r.width/2,m=Math.hypot(dx,dy)||1,k=Math.min(1,m/R);stickVec={x:dx/m*k,y:dy/m*k};nub.style.transform=`translate(${dx/m*k*R*.55}px,${dy/m*k*R*.55}px)`};
   stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;stick.setPointerCapture(e.pointerId);aInit();mv(e)});
