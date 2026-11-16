@@ -53,16 +53,19 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rend
 .badmin button{padding:7px 12px;border:0;border-radius:8px;background:#6ba84f;color:#10210d;font-weight:bold;cursor:pointer}
 .badmin .mk{background:linear-gradient(#ffcf4a,#e9972b);color:#3a2207;padding:9px 16px;font-size:14px}
 .badmin .hint2{color:#9fb890;margin-top:5px}
+
+/* touch: controls in a bar below the field */
+.touch #wrap{flex-direction:column;--cb:clamp(110px,30vmin,190px)}
+.touch #stage{flex:none;width:min(100vw,calc((100dvh - var(--cb) - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 1.6));height:auto;aspect-ratio:16/10;max-width:none;max-height:none}
+.touch #thud{display:flex;position:relative;inset:auto;flex:none;width:min(100vw,calc((100dvh - var(--cb) - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 1.6));height:var(--cb);align-items:center;justify-content:space-between;padding:0 5%;pointer-events:none}
+.touch #thud .stick{position:relative;left:auto;bottom:auto;height:88%;width:auto;max-width:none}
+.touch #thud .fire{position:relative;right:auto;bottom:auto;height:72%;width:auto;max-width:none;font-size:clamp(16px,4vmin,26px)}
 </style>
 </head>
 <body>
 <div id="wrap"><div id="stage">
 <canvas id="c" width="960" height="600"></canvas>
 <div id="pad"></div>
-<div id="thud">
-  <div class="stick" id="stick"><b id="nub"></b></div>
-  <div class="fire" id="fbtn">FIRE</div>
-</div>
 <div class="menu" id="menu">
   <div class="card">
     <div class="logo">TATER FIELD</div>
@@ -85,7 +88,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rend
     <button class="play" id="save">SAVE</button>
   </div>
 </div>
-</div></div>
+</div>
+<div id="thud">
+  <div class="stick" id="stick"><b id="nub"></b></div>
+  <div class="fire" id="fbtn">FIRE</div>
+</div>
+</div>
 <script>
 "use strict";
 const CV=document.getElementById('c'),X=CV.getContext('2d'),VW=960,VH=600;
