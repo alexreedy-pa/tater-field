@@ -70,7 +70,18 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rend
 .touch #thud .fire{position:relative;right:auto;bottom:auto;height:72%;width:auto;max-width:none;font-size:clamp(16px,4vmin,26px)}
 
 /* keep thumbs on the controls from scrolling/swiping the page */
-.touch #wrap,.touch #thud,.touch #thud *{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.touch #pad,.touch #thud,.touch #thud *{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* phones: menus and score screens fill the whole screen and scroll; scores listed first */
+.touch .menu{position:fixed;inset:0;z-index:50;padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));touch-action:pan-y;background:rgba(8,16,10,.82)}
+.touch .menu .card{max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
+.touch .cols{flex-direction:column}
+.touch .cols .hs{order:-1}
+#hsbtn{display:none;pointer-events:auto;flex:none;align-self:center;padding:10px 14px;border:2px solid #f0b36b;border-radius:12px;background:#2b3c26;color:#ffd84a;font:bold 14px "Trebuchet MS";line-height:1.1;text-align:center;box-shadow:0 4px 0 #13220f}
+.playing #hsbtn{display:block}
+#hsview .hs{text-align:left}
+#hsview .row2{display:flex;gap:10px;justify-content:center}
+#hsview .play{margin:10px 0 0;max-width:180px;font-size:17px;padding:11px}
+#hsview .alt{background:linear-gradient(#cfe3bf,#8fb37a);box-shadow:0 5px 0 #4e6b40}
 </style>
 </head>
 <body>
@@ -91,6 +102,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rend
     <div class="foot" id="foot"></div>
   </div>
 </div>
+<div class="menu" id="hsview" hidden>
+  <div class="card">
+    <div class="hs"><div class="hsh" id="hsh2">HIGH SCORES</div><ol id="hsl2"></ol></div>
+    <div class="row2"><button class="play" id="hsresume">RESUME</button><button class="play alt" id="hsquit">QUIT GAME</button></div>
+  </div>
+</div>
 <div class="menu" id="namecard" hidden>
   <div class="card nc">
     <div class="win">NEW HIGH SCORE!</div>
@@ -102,6 +119,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rend
 </div>
 <div id="thud">
   <div class="stick" id="stick"><b id="nub"></b></div>
+  <button id="hsbtn" type="button">&#127942;<br>SCORES</button>
   <div class="fire" id="fbtn">FIRE</div>
 </div>
 </div>
@@ -728,6 +746,18 @@ function overlay(t,s){X.fillStyle='rgba(13,10,20,.55)';X.fillRect(0,0,VW,VH);X.t
 
 reset();showMenu('title');initDB();
 requestAnimationFrame(frame);
+/* high scores reachable any time: SCORES button pauses and shows the list */
+(function(){const v=$('hsview'),b=$('hsbtn');let last=0;
+  function open(){if(G.mode!=='play'&&G.mode!=='pause')return;G.mode='pause';fill();v.hidden=false;
+    if(netReady)netLoad().then(r=>{if(r){globalHS=r;if(!v.hidden)fill()}})}
+  function fill(){renderHS();$('hsl2').innerHTML=hslEl.innerHTML;$('hsh2').textContent=$('hsh').textContent}
+  function tap(f){return e=>{e.preventDefault();e.stopPropagation();const t=Date.now();if(t-last<400)return;last=t;f()}}
+  ['touchend','click'].forEach(ev=>b.addEventListener(ev,tap(open),{passive:false}));
+  b.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
+  $('hsresume').onclick=()=>{v.hidden=true;if(G.mode==='pause')G.mode='play'};
+  $('hsquit').onclick=()=>{v.hidden=true;G.lastDiff=G.diff;showMenu('over')};
+  addEventListener('keydown',e=>{if((e.key==='h'||e.key==='H')&&!(e.target&&e.target.tagName==='INPUT'))v.hidden?open():$('hsresume').click()});
+  setInterval(()=>{document.body.classList.toggle('playing',G.mode==='play'||G.mode==='pause');if(!v.hidden&&G.mode!=='pause')v.hidden=true},250)})();
 /* full screen when sideways (Android/iPad; iPhone Safari needs Add to Home Screen) */
 (function(){const de=document.documentElement,req=de.requestFullscreen||de.webkitRequestFullscreen;if(!req)return;
   const isLand=()=>matchMedia('(orientation: landscape)').matches,isFS=()=>document.fullscreenElement||document.webkitFullscreenElement;
