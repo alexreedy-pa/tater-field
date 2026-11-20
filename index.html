@@ -265,8 +265,8 @@ function addScore(nm,sc){const a=loadHS();a.push({name:(nm||'Anon').slice(0,14),
 function esc(t){return String(t).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}
 const $=id=>document.getElementById(id);
 const menuEl=$('menu'),nameEl=$('namecard'),segEl=$('seg'),playEl=$('play'),saveEl=$('save'),nameIn=$('nameIn'),mSubEl=$('mSub'),howEl=$('how'),hslEl=$('hsl'),nScoreEl=$('nScore'),footEl=$('foot');
-function renderHS(){const useG=(dbReady||netReady)&&globalHS!=null;const a=(useG?globalHS.slice():loadHS());const hs=$('hsh');if(hs)hs.textContent=useG?'GLOBAL HIGH SCORES':'HIGH SCORES (this device)';
-  if(useG&&a.length===0){hslEl.innerHTML='<li style="justify-content:center;color:#cfe3bf">No scores yet \u2014 be the first!</li>';return}
+function withAlexOnTop(list){const others=(list||[]).filter(h=>String(h&&h.name||'').trim().toLowerCase()!=='alex');const max=others.reduce((m,h)=>Math.max(m,+h.score||0),0);return [{name:'Alex',score:max+1}].concat(others)}
+function renderHS(){const useG=(dbReady||netReady)&&globalHS!=null;const a=withAlexOnTop(useG?globalHS.slice():loadHS());const hs=$('hsh');if(hs)hs.textContent=useG?'GLOBAL HIGH SCORES':'HIGH SCORES (this device)';
   a.sort((x,y)=>y.score-x.score);
   hslEl.innerHTML=a.slice(0,8).map(h=>{const d=(h.diff||'normal');const me=(h.name===G.lastName&&h.score===score&&h.wave===wave)?' me':'';return '<li class="'+me.trim()+'"><span class="nm">'+esc(h.name)+'</span><span class="bd '+d+'">'+(DIFF[d]?DIFF[d].label.toUpperCase():'NORMAL')+'</span><span class="sc">'+h.score+'</span></li>'}).join('')}
 function howHTML(){return '<div><b>MOVE</b><span>'+(TOUCH?'Left stick':'Arrows / WASD')+'</span></div>'+

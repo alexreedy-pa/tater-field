@@ -1,4 +1,4 @@
-const C='tater-v2-art';
+const C='tater-v3-alex-hs';
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png','./art/sheets.json','./art/ball.png','./art/banner.png','./art/bg_back.png','./art/bg_front.png','./art/bg_sky.png','./art/boss.png','./art/caddy.png','./art/cloud0.png','./art/cloud1.png','./art/cloud2.png','./art/dad.png','./art/hoa.png','./art/lady.png','./art/logo.png','./art/plant.png','./art/poof.png','./art/potato.png','./art/powerups.png','./art/tater.png','./art/tractor.png','./art/trailer.png','./art/windmill.png'])))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==location.origin)return;
